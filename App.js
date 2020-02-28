@@ -9,14 +9,35 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
+import {connect, Provider} from 'react-redux';
 
 import Sound from 'react-native-sound';
 import {AudioRecorder, AudioUtils} from 'react-native-audio';
+import {createStore} from 'redux';
+
+const audioListReducer = (state, {type, payload}) => {
+  switch (type) {
+    case ADD_RECORD:
+      const newList = [...state.audioFileNames, payload];
+      return Object.assign({}, state, {audioFileNames: newList});
+    default:
+      return {
+        audioFileNames: [],
+      };
+  }
+};
+
+const store = createStore(audioListReducer);
+
+const IDLE = 'idle';
+const PLAYING = 'play';
+const PAUSED = 'pause';
+const RECORD = 'record';
+const AUDIO_BASE = AudioUtils.DocumentDirectoryPath;
 
 class MeetingRoom extends React.Component {
   state = {
-    isRecording: false,
-    audioPath: AudioUtils.DocumentDirectoryPath + '/test.aac',
+    recordingState: IDLE,
     hasPermission: false,
     currentTime: 0,
     paused: false,
@@ -24,9 +45,9 @@ class MeetingRoom extends React.Component {
 
   prepareRecordingPath(audioPath) {
     AudioRecorder.prepareRecordingAtPath(audioPath, {
-      SampleRate: 22050,
+      SampleRate: 44100,
       Channels: 1,
-      AudioQuality: 'Low',
+      AudioQuality: 'Medium',
       AudioEncoding: 'aac',
       AudioEncodingBitRate: 32000,
     });
@@ -40,7 +61,7 @@ class MeetingRoom extends React.Component {
 
       if (!isAuthorised) return;
 
-      this.prepareRecordingPath(this.state.audioPath);
+      // this.prepareRecordingPath(this.state.audioPath);
 
       AudioRecorder.onProgress = data => {
         this.setState({
@@ -61,19 +82,43 @@ class MeetingRoom extends React.Component {
     });
   }
 
-  renderButton(title, callback, shouldRender) {
-    const render = shouldRender ? (
-      <TouchableHighlight onPress={callback}>
+  getButton(title, callback) {
+    return (
+      <TouchableHighlight onPress={callback} style={styles.playerButton}>
         <Text>{title}</Text>
       </TouchableHighlight>
-    ) : null;
-    return render;
+    );
+  }
+
+  renderButton(recordingState) {
+    if (recordingState == IDLE) {
+      // render record
+      return (
+        <>
+          {this.getButton('record', () => this.record())}
+          {this.getButton('Playrecord', () => this.play())}
+        </>
+      );
+    } else if (recordingState == RECORD) {
+      // render Stop button and pause
+      return (
+        <>
+          <Text>{this.state.currentTime}</Text>
+          {this.getButton('stop', () => this.stop())}
+          {this.getButton('pause', () => this.pause())}
+        </>
+      );
+      // this.getButton('pause', () => this.pause()
+    } else {
+      // render Resume
+      return this.getButton('resume', () => this.resume());
+    }
   }
 
   // renderPauseButton() {}
 
   async pause() {
-    if (!this.state.recording) {
+    if (this.state.recordingState !== RECORD) {
       console.warn("Can't pause, not recording!");
       return;
     }
@@ -87,7 +132,7 @@ class MeetingRoom extends React.Component {
   }
 
   async resume() {
-    if (!this.state.paused) {
+    if (!this.state.recordingState == PAUSED) {
       console.warn("Can't resume, not paused!");
       return;
     }
@@ -101,21 +146,20 @@ class MeetingRoom extends React.Component {
   }
 
   async stop() {
-    if (!this.state.recording) {
+    if (this.state.recordingState !== RECORD) {
       console.warn("Can't stop, not recording!");
       return;
     }
 
     this.setState({
-      isRecording: false,
-      paused: false,
+      recordingState: IDLE,
     });
 
     try {
       const filePath = await AudioRecorder.stopRecording();
 
       if (Platform.OS === 'android') {
-        this._finishRecording(true, filePath);
+        this.finishRecording(true, filePath);
       }
       return filePath;
     } catch (error) {
@@ -124,8 +168,8 @@ class MeetingRoom extends React.Component {
   }
 
   async play() {
-    if (this.state.recording) {
-      await this._stop();
+    if (this.state.recordingState == IDLE) {
+      // await this._stop();
     }
 
     // These timeouts are a hacky workaround for some issues with react-native-sound.
@@ -150,7 +194,7 @@ class MeetingRoom extends React.Component {
   }
 
   async record() {
-    if (this.state.recording) {
+    if (this.state.recordingState == RECORD) {
       console.warn('Already recording!');
       return;
     }
@@ -159,10 +203,11 @@ class MeetingRoom extends React.Component {
       console.warn("Can't record, no permission granted!");
       return;
     }
+    const date = new Date().toLocaleDateString();
+    this.prepareRecordingPath(this.state.audioPath + date);
 
     this.setState({
-      isRecording: true,
-      paused: false,
+      recordingState: RECORD,
     });
 
     try {
@@ -183,23 +228,45 @@ class MeetingRoom extends React.Component {
   }
 
   render() {
-    const {isRecording} = this.state;
+    const {recordingState} = this.state;
+    console.log('rec', recordingState);
+
     return (
-      <View>
-        <View>
-          {this.renderButton(
-            'Start Recordi',
-            () => this.record(),
-            !isRecording,
-          )}
-        </View>
-        <View>{this.renderButton('Stop', () => this.stop(), isRecording)}</View>
-        <View>
-          {this.renderButton('Pause', () => this.pause(), isRecording)}
-        </View>
-      </View>
+      <Provider store={store}>
+        <View>{this.renderButton(recordingState)}</View>
+      </Provider>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  playerButton: {
+    margin: 50,
+    flex: 1,
+    padding: 15,
+    backgroundColor: '#919',
+  },
+});
+
+const ADD_RECORD = 'add_record';
+
+const audioListAction = fileName => {
+  return {
+    type: ADD_RECORD,
+    payload: fileName,
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    finishRecording: fileName => {
+      dispatch(audioListAction(fileName));
+    },
+  };
+};
+
+const mapStateToProps = state => {
+  audioList: audioListReducer();
+};
 
 export default MeetingRoom;
