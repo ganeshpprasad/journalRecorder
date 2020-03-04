@@ -74,7 +74,7 @@ export class Buttons extends Component {
   getButton(title, callback) {
     return (
       <TouchableHighlight onPress={callback} style={styles.playerButton}>
-        <Text>{title}</Text>
+        <Text style={styles.buttonText}>{title}</Text>
       </TouchableHighlight>
     );
   }
@@ -84,7 +84,7 @@ export class Buttons extends Component {
       // render record
       return (
         <>
-          {this.getButton('record', () => this.record())}
+          {this.getButton('RECORD', () => this.record())}
           {this.getButton('Playrecord', () => this.play())}
         </>
       );
@@ -92,7 +92,9 @@ export class Buttons extends Component {
       // render Stop button and pause
       return (
         <>
-          <Text>{this.state.currentTime}</Text>
+          <View style={styles.timerView}>
+            <Text style={styles.timer}>{this.state.currentTime}</Text>
+          </View>
           {this.getButton('stop', () => this.stop())}
           {this.getButton('pause', () => this.pause())}
         </>
@@ -208,10 +210,10 @@ export class Buttons extends Component {
   }
 
   finishRecording(didSucceed, filePath, fileSize) {
-    this.setState({finished: didSucceed});
     console.log('file path at finish', this.state.newRecord, filePath);
 
     this.props.addRecording(filePath);
+    this.setState({finished: didSucceed});
     console.log(
       `Finished recording of duration ${
         this.state.currentTime
@@ -221,7 +223,7 @@ export class Buttons extends Component {
 
   render() {
     // console.log('t', this.state);
-    return <>{this.renderButton()}</>;
+    return <View style={styles.mainCon}>{this.renderButton()}</View>;
   }
 }
 
@@ -234,12 +236,33 @@ const mapDispatchToProps = dispatch => {
 };
 
 const styles = StyleSheet.create({
+  mainCon: {
+    marginTop: 10,
+  },
   playerButton: {
     margin: 50,
     flex: 1,
     padding: 30,
-    backgroundColor: '#919',
+    borderColor: '#919',
+    borderWidth: 2,
     color: '#fff',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  buttonText: {
+    fontSize: 20,
+  },
+  timer: {
+    fontSize: 20,
+  },
+  timerView: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderWidth: 5,
+    borderColor: '#333',
+    borderRadius: 50,
+    padding: 30,
   },
 });
 
