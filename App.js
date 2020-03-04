@@ -4,7 +4,7 @@ import {Provider} from 'react-redux';
 import {createStore} from 'redux';
 
 import ErrorBoundry from './src/screens/ErrorBoundry';
-import Buttons from './src/screens/Buttons';
+import Recorder from './src/screens/Recorder';
 import {ADD_RECORD} from './src/actions/addAudio';
 
 const audioListReducer = (state, {type, payload}) => {
@@ -22,20 +22,12 @@ const audioListReducer = (state, {type, payload}) => {
 const store = createStore(audioListReducer);
 
 class MeetingRoom extends React.Component {
-  state = {
-    hasPermission: false,
-  };
-
-  // renderPauseButton() {}
-
   render() {
-    const {recordingState} = this.state;
-    console.log('rec', recordingState);
-
     return (
       <Provider store={store}>
         <ErrorBoundry>
-          <Buttons />
+          <Recorder />
+          {/* List */}
         </ErrorBoundry>
       </Provider>
     );

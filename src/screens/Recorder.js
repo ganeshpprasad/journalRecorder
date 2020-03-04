@@ -14,7 +14,7 @@ import {
 import {audioListAction} from '../actions/addAudio';
 
 const IDLE = 'idle';
-const PLAYING = 'play';
+// const PLAYING = 'play';
 const PAUSED = 'pause';
 const RECORD = 'record';
 const AUDIO_BASE = AudioUtils.DocumentDirectoryPath;
@@ -24,9 +24,13 @@ export class Buttons extends Component {
     recordingState: IDLE,
     hasPermission: false,
     currentTime: 0,
+    newRecord: null,
+    finished: false,
   };
 
   prepareRecordingPath(audioPath) {
+    console.log('called');
+
     AudioRecorder.prepareRecordingAtPath(audioPath, {
       SampleRate: 44100,
       Channels: 1,
@@ -75,7 +79,7 @@ export class Buttons extends Component {
     );
   }
 
-  renderButton(recordingState) {
+  renderButton(recordingState = this.state.recordingState) {
     if (recordingState == IDLE) {
       // render record
       return (
@@ -115,7 +119,7 @@ export class Buttons extends Component {
   }
 
   async resume() {
-    if (!this.state.recordingState == PAUSED) {
+    if (this.state.recordingState !== PAUSED) {
       console.warn("Can't resume, not paused!");
       return;
     }
@@ -158,7 +162,7 @@ export class Buttons extends Component {
     // These timeouts are a hacky workaround for some issues with react-native-sound.
     // See https://github.com/zmxv/react-native-sound/issues/89.
     setTimeout(() => {
-      var sound = new Sound(this.state.audioPath, '', error => {
+      var sound = new Sound(this.state.newRecord, '', error => {
         if (error) {
           console.log('failed to load the sound', error);
         }
@@ -187,12 +191,14 @@ export class Buttons extends Component {
       return;
     }
     const date = new Date().toLocaleDateString();
-    this.prepareRecordingPath(this.state.audioPath + date);
+    this.prepareRecordingPath(AUDIO_BASE + date);
+    this.setState({
+      newRecord: AUDIO_BASE + date,
+    });
 
     this.setState({
       recordingState: RECORD,
     });
-
     try {
       const filePath = await AudioRecorder.startRecording();
       console.log('Recording', filePath);
@@ -203,6 +209,8 @@ export class Buttons extends Component {
 
   finishRecording(didSucceed, filePath, fileSize) {
     this.setState({finished: didSucceed});
+    console.log('file path at finish', this.state.newRecord, filePath);
+
     this.props.addRecording(filePath);
     console.log(
       `Finished recording of duration ${
@@ -212,6 +220,7 @@ export class Buttons extends Component {
   }
 
   render() {
+    // console.log('t', this.state);
     return <>{this.renderButton()}</>;
   }
 }
@@ -228,8 +237,9 @@ const styles = StyleSheet.create({
   playerButton: {
     margin: 50,
     flex: 1,
-    padding: 15,
+    padding: 30,
     backgroundColor: '#919',
+    color: '#fff',
   },
 });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import {SafeAreaView} from 'react-native';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -22,6 +23,6 @@ export default class ErrorBoundary extends React.Component {
       return <h1>Something went wrong.</h1>;
     }
 
-    return this.props.children;
+    return <SafeAreaView>{this.props.children}</SafeAreaView>;
   }
 }
