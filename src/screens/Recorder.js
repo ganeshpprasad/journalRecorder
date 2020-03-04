@@ -26,6 +26,7 @@ export class Buttons extends Component {
     currentTime: 0,
     newRecord: null,
     finished: false,
+    recordName: null,
   };
 
   prepareRecordingPath(audioPath) {
@@ -148,6 +149,8 @@ export class Buttons extends Component {
       const filePath = await AudioRecorder.stopRecording();
 
       if (Platform.OS === 'android') {
+        console.log('filePath at stops', filePath);
+
         this.finishRecording(true, filePath);
       }
       return filePath;
@@ -192,10 +195,23 @@ export class Buttons extends Component {
       console.warn("Can't record, no permission granted!");
       return;
     }
-    const date = new Date().toLocaleDateString();
-    this.prepareRecordingPath(AUDIO_BASE + date);
+    const date = new Date();
+    const date_foler = date
+      .toDateString()
+      .split(' ')
+      .join('_');
+    const time_file = new Date()
+      .toLocaleTimeString()
+      .split(':')
+      .join('_');
+
+    // check for duplicates and all
+
+    const fileName = AUDIO_BASE + '/' + date_foler + '/' + time_file + '.aac';
+    this.prepareRecordingPath(fileName);
     this.setState({
-      newRecord: AUDIO_BASE + date,
+      newRecord: fileName,
+      recordName: time_file,
     });
 
     this.setState({
@@ -212,7 +228,10 @@ export class Buttons extends Component {
   finishRecording(didSucceed, filePath, fileSize) {
     console.log('file path at finish', this.state.newRecord, filePath);
 
-    this.props.addRecording(filePath);
+    this.props.addRecording({
+      location: this.state.newRecord,
+      name: this.state.recordName,
+    });
     this.setState({finished: didSucceed});
     console.log(
       `Finished recording of duration ${
