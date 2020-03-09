@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import {StyleSheet, Text, FlatList, TouchableHighlight} from 'react-native';
 import {connect} from 'react-redux';
 import Sound from 'react-native-sound';
+// import Speech from '@google-cloud/speech';
+import fs from 'react-native-fs';
 
 const Item = props => {
   const playRecording = () => {
@@ -17,9 +19,40 @@ const Item = props => {
     }, 100);
   };
 
+  const speechToText = async () => {
+    console.log('fileName:', props.item.location);
+    const file = await fs.readFile(props.item.location, 'base64');
+    const audioBytes = file.toString('base64');
+
+    // Make API call to nodejs server
+    return fetch('http://192.168.225.89:5000/getTranscripts', {
+      method: 'POST',
+      body: JSON.stringify({
+        audio: audioBytes,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+      })
+      .catch(error => console.log('error', error));
+  };
+
+  const getTranscripts = () => {
+    const response = speechToText();
+
+    return <Text>{'YAYY'}</Text>;
+  };
+
   return (
     <TouchableHighlight onPress={() => playRecording()}>
-      <Text style={styles.item}>{props.item.name}</Text>
+      <>
+        <Text style={styles.item}>{props.item.name}</Text>
+        {getTranscripts()}
+      </>
     </TouchableHighlight>
   );
 };
