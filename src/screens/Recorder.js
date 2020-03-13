@@ -8,7 +8,6 @@ import {
   View,
   TouchableHighlight,
   Platform,
-  PermissionsAndroid,
 } from 'react-native';
 
 import {audioListAction} from '../actions/addAudio';
@@ -32,6 +31,7 @@ export class Buttons extends Component {
   prepareRecordingPath(audioPath) {
     console.log('called');
 
+    // TODO: Move this to helper
     AudioRecorder.prepareRecordingAtPath(audioPath, {
       SampleRate: 44100,
       Channels: 1,
@@ -42,6 +42,7 @@ export class Buttons extends Component {
   }
 
   componentDidMount() {
+    // TODO: Move this to helper
     AudioRecorder.requestAuthorization().then(isAuthorised => {
       this.setState({
         hasPermission: isAuthorised,
@@ -52,13 +53,14 @@ export class Buttons extends Component {
       }
 
       // this.prepareRecordingPath(this.state.audioPath);
-
+      // TODO: Move this to helper
       AudioRecorder.onProgress = data => {
+        // FIXME Get the data and set state here
         this.setState({
           currentTime: Math.floor(data.currentTime),
         });
       };
-
+      // TODO: Move this to helper
       AudioRecorder.onFinished = data => {
         // Android callback comes in the form of a promise instead.
         if (Platform.OS === 'ios') {
@@ -80,6 +82,7 @@ export class Buttons extends Component {
     );
   }
 
+  // Render different buttons based on recordingState
   renderButton(recordingState = this.state.recordingState) {
     if (recordingState == IDLE) {
       // render record
@@ -195,6 +198,7 @@ export class Buttons extends Component {
       console.warn("Can't record, no permission granted!");
       return;
     }
+    // TODO: Move this to helper
     const date = new Date();
     const date_foler = date
       .toDateString()
