@@ -36,7 +36,7 @@ export class Buttons extends Component {
       SampleRate: 44100,
       Channels: 1,
       AudioQuality: 'Medium',
-      AudioEncoding: 'aac',
+      AudioEncoding: 'amr_wb',
       AudioEncodingBitRate: 32000,
     });
   }
@@ -118,7 +118,7 @@ export class Buttons extends Component {
 
     try {
       const filePath = await AudioRecorder.pauseRecording();
-      this.setState({paused: true});
+      this.setState({recordingState: PAUSED});
     } catch (error) {
       console.error(error);
     }
@@ -132,7 +132,7 @@ export class Buttons extends Component {
 
     try {
       await AudioRecorder.resumeRecording();
-      this.setState({paused: false});
+      this.setState({recordingState: RECORD});
     } catch (error) {
       console.error(error);
     }
@@ -211,7 +211,7 @@ export class Buttons extends Component {
 
     // check for duplicates and all
 
-    const fileName = AUDIO_BASE + '/' + date_foler + '/' + time_file + '.aac';
+    const fileName = AUDIO_BASE + '/' + date_foler + '/' + time_file + '.amr';
     this.prepareRecordingPath(fileName);
     this.setState({
       newRecord: fileName,
@@ -221,6 +221,7 @@ export class Buttons extends Component {
     this.setState({
       recordingState: RECORD,
     });
+
     try {
       const filePath = await AudioRecorder.startRecording();
       console.log('Recording', filePath);
@@ -268,7 +269,6 @@ const styles = StyleSheet.create({
     padding: 30,
     borderColor: '#919',
     borderWidth: 2,
-    color: '#fff',
     alignItems: 'center',
     justifyContent: 'space-around',
   },

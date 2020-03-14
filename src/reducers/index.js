@@ -1,18 +1,19 @@
 import {ADD_RECORD} from '../actions/addAudio';
-import {Map} from 'immutable';
+// import {List, Map} from 'immutable';
 
-const initialState = Map({
-  audioFileNames: [],
-});
+const initialState = {
+  audioFileName: [],
+};
 
 const audioListReducer = (state = initialState, {type, payload}) => {
   switch (type) {
     case ADD_RECORD:
-      console.log('add record', state);
-      const newState = state.set('audioFileNames', payload);
-      return newState;
+      const temp = state.audioFileName;
+      const newAFN = temp.concat(payload);
+      console.log('add record', state, payload, newAFN);
+      return {...state, audioFileName: newAFN};
     default:
-      return initialState;
+      return state;
   }
 };
 

@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, useState} from 'react';
 import {StyleSheet, Text, FlatList, TouchableHighlight} from 'react-native';
 import {connect} from 'react-redux';
 import Sound from 'react-native-sound';
@@ -6,6 +6,8 @@ import Sound from 'react-native-sound';
 import fs from 'react-native-fs';
 
 const Item = props => {
+  const [transcript, set] = useState('');
+
   const playRecording = () => {
     const sound = new Sound(props.item.location, '', () => {});
     setTimeout(() => {
@@ -25,7 +27,7 @@ const Item = props => {
     const audioBytes = file.toString('base64');
 
     // Make API call to nodejs server
-    return fetch('http://192.168.225.89:5000/getTranscripts', {
+    return fetch('http://192.168.225.113:5000/getTranscripts', {
       method: 'POST',
       body: JSON.stringify({
         audio: audioBytes,
@@ -38,13 +40,19 @@ const Item = props => {
       .then(data => {
         console.log(data);
       })
-      .catch(error => console.log('error', error));
+      .catch(error => console.log('google api error', error));
   };
 
   const getTranscripts = () => {
     const response = speechToText();
+    response
+      .then(data => {
+        console.log('res done', data);
+        set(data);
+      })
+      .catch(e => console.log('error in response data', e));
 
-    return <Text>{'YAYY'}</Text>;
+    return <Text>{transcript}</Text>;
   };
 
   return (
@@ -81,10 +89,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = ({audioFileNames}) => ({
-  audioFiles: audioFileNames,
+const mapStateToProps = state => ({
+  audioFiles: state.audioFileName,
 });
 
 const mapDispatchToProps = {};
 
+// eslint-disable-next-line prettier/prettier
 export default connect(mapStateToProps, mapDispatchToProps)(RecordsList);
