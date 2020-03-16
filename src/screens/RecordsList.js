@@ -3,7 +3,7 @@ import {StyleSheet, Text, FlatList, TouchableHighlight} from 'react-native';
 import {connect} from 'react-redux';
 import Sound from 'react-native-sound';
 // import Speech from '@google-cloud/speech';
-import fs from 'react-native-fs';
+import {speechToText} from '../services/speechToTextAPI';
 
 const Item = props => {
   const [transcript, set] = useState('');
@@ -21,30 +21,9 @@ const Item = props => {
     }, 100);
   };
 
-  const speechToText = async () => {
-    console.log('fileName:', props.item.location);
-    const file = await fs.readFile(props.item.location, 'base64');
-    const audioBytes = file.toString('base64');
-
-    // Make API call to nodejs server
-    return fetch('http://192.168.225.113:5000/getTranscripts', {
-      method: 'POST',
-      body: JSON.stringify({
-        audio: audioBytes,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-      })
-      .catch(error => console.log('google api error', error));
-  };
-
   const getTranscripts = () => {
-    const response = speechToText();
+    const {location} = props.item;
+    const response = speechToText(location);
     response
       .then(data => {
         console.log('res done', data);
