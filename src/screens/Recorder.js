@@ -1,113 +1,61 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import Sound from 'react-native-sound';
-import {AudioRecorder, AudioUtils} from 'react-native-audio';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableHighlight,
-  Platform,
-} from 'react-native';
+import {AudioRecorder} from 'react-native-audio';
+import {StyleSheet, Text, View, Animated} from 'react-native';
 
 import {audioListAction} from '../actions/addAudio';
+import {
+  initialiseAudioRecorder,
+  prepareRecordingAtPath,
+} from '../helpers/soundRecorder';
+
+import {Button} from '../components/Button';
+import {getFileName} from '../helpers/filename';
 
 const IDLE = 'idle';
 // const PLAYING = 'play';
 const PAUSED = 'pause';
 const RECORD = 'record';
-const AUDIO_BASE = AudioUtils.DocumentDirectoryPath;
 
 export class Buttons extends Component {
   state = {
     recordingState: IDLE,
-    hasPermission: false,
+    isAuthorised: false,
     currentTime: 0,
-    newRecord: null,
+    location: null,
     finished: false,
-    recordName: null,
+    fileName: null,
+    show: new Animated.Value(0),
   };
 
-  prepareRecordingPath(audioPath) {
-    console.log('called');
+  constructor(props) {
+    super(props);
+    this.onProgress = this.onProgress.bind(this);
+    this.setAuthorisedState = this.setAuthorisedState.bind(this);
+  }
 
-    // TODO: Move this to helper
-    AudioRecorder.prepareRecordingAtPath(audioPath, {
-      SampleRate: 44100,
-      Channels: 1,
-      AudioQuality: 'Medium',
-      AudioEncoding: 'amr_wb',
-      AudioEncodingBitRate: 32000,
+  onProgress(data) {
+    this.setState({
+      currentTime: Math.floor(data.currentTime),
+    });
+  }
+
+  setAuthorisedState(isAuthorised) {
+    this.setState({
+      isAuthorised,
     });
   }
 
   componentDidMount() {
     // TODO: Move this to helper
-    AudioRecorder.requestAuthorization().then(isAuthorised => {
-      this.setState({
-        hasPermission: isAuthorised,
-      });
 
-      if (!isAuthorised) {
-        return;
-      }
+    initialiseAudioRecorder(this.setAuthorisedState, this.onProgress);
 
-      // this.prepareRecordingPath(this.state.audioPath);
-      // TODO: Move this to helper
-      AudioRecorder.onProgress = data => {
-        // FIXME Get the data and set state here
-        this.setState({
-          currentTime: Math.floor(data.currentTime),
-        });
-      };
-      // TODO: Move this to helper
-      AudioRecorder.onFinished = data => {
-        // Android callback comes in the form of a promise instead.
-        if (Platform.OS === 'ios') {
-          this.finishRecording(
-            data.status === 'OK',
-            data.audioFileURL,
-            data.audioFileSize,
-          );
-        }
-      };
-    });
-  }
-
-  getButton(title, callback) {
-    return (
-      <TouchableHighlight onPress={callback} style={styles.playerButton}>
-        <Text style={styles.buttonText}>{title}</Text>
-      </TouchableHighlight>
-    );
-  }
-
-  // Render different buttons based on recordingState
-  renderButton(recordingState = this.state.recordingState) {
-    if (recordingState == IDLE) {
-      // render record
-      return (
-        <>
-          {this.getButton('RECORD', () => this.record())}
-          {this.getButton('Playrecord', () => this.play())}
-        </>
-      );
-    } else if (recordingState == RECORD) {
-      // render Stop button and pause
-      return (
-        <>
-          <View style={styles.timerView}>
-            <Text style={styles.timer}>{this.state.currentTime}</Text>
-          </View>
-          {this.getButton('stop', () => this.stop())}
-          {this.getButton('pause', () => this.pause())}
-        </>
-      );
-      // this.getButton('pause', () => this.pause()
-    } else {
-      // render Resume
-      return this.getButton('resume', () => this.resume());
-    }
+    Animated.timing(this.state.show, {
+      toValue: 1,
+      timing: 10000,
+    }).start();
   }
 
   async pause() {
@@ -117,7 +65,7 @@ export class Buttons extends Component {
     }
 
     try {
-      const filePath = await AudioRecorder.pauseRecording();
+      await AudioRecorder.pauseRecording();
       this.setState({recordingState: PAUSED});
     } catch (error) {
       console.error(error);
@@ -144,48 +92,12 @@ export class Buttons extends Component {
       return;
     }
 
-    this.setState({
-      recordingState: IDLE,
-    });
-
     try {
       const filePath = await AudioRecorder.stopRecording();
-
-      if (Platform.OS === 'android') {
-        console.log('filePath at stops', filePath);
-
-        this.finishRecording(true, filePath);
-      }
-      return filePath;
+      this.finishRecording(true, filePath);
     } catch (error) {
       console.error(error);
     }
-  }
-
-  async play() {
-    if (this.state.recordingState == IDLE) {
-      // await this._stop();
-    }
-
-    // These timeouts are a hacky workaround for some issues with react-native-sound.
-    // See https://github.com/zmxv/react-native-sound/issues/89.
-    setTimeout(() => {
-      var sound = new Sound(this.state.newRecord, '', error => {
-        if (error) {
-          console.log('failed to load the sound', error);
-        }
-      });
-
-      setTimeout(() => {
-        sound.play(success => {
-          if (success) {
-            console.log('successfully finished playing');
-          } else {
-            console.log('playback failed due to audio decoding errors');
-          }
-        });
-      }, 100);
-    }, 100);
   }
 
   async record() {
@@ -194,60 +106,62 @@ export class Buttons extends Component {
       return;
     }
 
-    if (!this.state.hasPermission) {
+    if (!this.state.isAuthorised) {
       console.warn("Can't record, no permission granted!");
       return;
     }
-    // TODO: Move this to helper
-    const date = new Date();
-    const date_foler = date
-      .toDateString()
-      .split(' ')
-      .join('_');
-    const time_file = new Date()
-      .toLocaleTimeString()
-      .split(':')
-      .join('_');
 
-    // check for duplicates and all
+    const {location, fileName} = getFileName();
+    console.log('record begin');
 
-    const fileName = AUDIO_BASE + '/' + date_foler + '/' + time_file + '.amr';
-    this.prepareRecordingPath(fileName);
+    prepareRecordingAtPath(location);
     this.setState({
-      newRecord: fileName,
-      recordName: time_file,
-    });
-
-    this.setState({
+      location,
+      fileName,
       recordingState: RECORD,
     });
 
     try {
-      const filePath = await AudioRecorder.startRecording();
-      console.log('Recording', filePath);
+      await AudioRecorder.startRecording();
     } catch (error) {
       console.error(error);
     }
   }
 
   finishRecording(didSucceed, filePath, fileSize) {
-    console.log('file path at finish', this.state.newRecord, filePath);
-
     this.props.addRecording({
-      location: this.state.newRecord,
-      name: this.state.recordName,
+      location: this.state.location,
+      name: this.state.fileName,
     });
-    this.setState({finished: didSucceed});
-    console.log(
-      `Finished recording of duration ${
-        this.state.currentTime
-      } seconds at path: ${filePath} and size of ${fileSize || 0} bytes`,
-    );
+    this.setState({finished: didSucceed, recordingState: IDLE});
   }
 
   render() {
-    // console.log('t', this.state);
-    return <View style={styles.mainCon}>{this.renderButton()}</View>;
+    const {recordingState} = this.state;
+    console.log('render', recordingState);
+
+    return (
+      <View style={styles.mainCon}>
+        {recordingState === IDLE ? (
+          // render record
+          <Animated.View style={{opacity: this.state.show}}>
+            <Button title={'RECORD'} callback={() => this.record()} />
+            {/* <Button title={'Playrecord'} callback={() => this.play()} /> */}
+          </Animated.View>
+        ) : recordingState === RECORD ? (
+          // render Stop button and pause
+          <>
+            <View style={styles.timerView}>
+              <Text style={styles.timer}>{this.state.currentTime}</Text>
+            </View>
+            <Button title={'STOP'} callback={() => this.stop()} />
+            <Button title={'PAUSE'} callback={() => this.pause()} />
+          </>
+        ) : (
+          <Button title={'RESUME'} callback={() => this.resume()} />
+        )}
+      </View>
+    );
   }
 }
 
@@ -262,18 +176,6 @@ const mapDispatchToProps = dispatch => {
 const styles = StyleSheet.create({
   mainCon: {
     marginTop: 10,
-  },
-  playerButton: {
-    margin: 50,
-    flex: 1,
-    padding: 30,
-    borderColor: '#919',
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-  },
-  buttonText: {
-    fontSize: 20,
   },
   timer: {
     fontSize: 20,
