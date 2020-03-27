@@ -3,13 +3,14 @@ import fs from 'react-native-fs';
 export const speechToText = async location => {
   console.log('fileName:', location);
   const file = await fs.readFile(location, 'base64');
-  const audioBytes = file.toString('base64');
+
+  console.log('fie', file);
 
   // Make API call to nodejs server
-  return fetch('http://192.168.225.113:5000/getTranscripts', {
+  return fetch('http://192.168.225.189:5000/getTranscripts', {
     method: 'POST',
     body: JSON.stringify({
-      audio: audioBytes,
+      audio: file,
     }),
     headers: {
       'Content-Type': 'application/json',
