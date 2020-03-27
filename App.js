@@ -12,6 +12,10 @@ import audioListReducer from './src/reducers';
 
 const store = createStore(audioListReducer);
 
+if (!__DEV__) {
+  console.ignoredYellowBox = true;
+}
+
 class MeetingRoom extends React.Component {
   render() {
     return (
