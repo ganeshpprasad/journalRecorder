@@ -1,4 +1,4 @@
-import {Navigation} from 'react-native-navigation';
+import { Navigation } from 'react-native-navigation';
 import App from './src/App';
 
-Navigation.events().registerAppLaunchedListener(() => App);
+Navigation.events().registerAppLaunchedListener(App);

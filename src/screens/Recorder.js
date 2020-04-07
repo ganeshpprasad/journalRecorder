@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import Sound from 'react-native-sound';
-import {AudioRecorder, AudioUtils} from 'react-native-audio';
+import { AudioRecorder, AudioUtils } from 'react-native-audio';
 import {
   StyleSheet,
   Text,
@@ -10,10 +10,10 @@ import {
   Platform,
 } from 'react-native';
 
-import {audioListAction} from '../actions/addAudio';
+import { audioListAction } from '../actions/addAudio';
 
-const IDLE = 'idle';
 // const PLAYING = 'play';
+const IDLE = 'idle';
 const PAUSED = 'pause';
 const RECORD = 'record';
 const AUDIO_BASE = AudioUtils.DocumentDirectoryPath;
@@ -27,6 +27,10 @@ export class Buttons extends Component {
     finished: false,
     recordName: null,
   };
+
+  componentDidMount() {
+    console.log('recorder mount');
+  }
 
   prepareRecordingPath(audioPath) {
     console.log('called');
@@ -118,7 +122,7 @@ export class Buttons extends Component {
 
     try {
       const filePath = await AudioRecorder.pauseRecording();
-      this.setState({recordingState: PAUSED});
+      this.setState({ recordingState: PAUSED });
     } catch (error) {
       console.error(error);
     }
@@ -132,7 +136,7 @@ export class Buttons extends Component {
 
     try {
       await AudioRecorder.resumeRecording();
-      this.setState({recordingState: RECORD});
+      this.setState({ recordingState: RECORD });
     } catch (error) {
       console.error(error);
     }
@@ -237,7 +241,7 @@ export class Buttons extends Component {
       location: this.state.newRecord,
       name: this.state.recordName,
     });
-    this.setState({finished: didSucceed});
+    this.setState({ finished: didSucceed });
     console.log(
       `Finished recording of duration ${
         this.state.currentTime
@@ -290,4 +294,7 @@ const styles = StyleSheet.create({
 });
 
 // eslint-disable-next-line prettier/prettier
-export default connect(null, mapDispatchToProps)(Buttons);
+export default connect(
+  null,
+  mapDispatchToProps,
+)(Buttons);

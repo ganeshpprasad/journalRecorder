@@ -1,12 +1,12 @@
 import React from 'react';
+import { Text, View } from 'react-native';
 import { Navigation } from 'react-native-navigation';
 
-// screens
-import { RECORDING, AUDIO } from './screens/constants';
+import { withProvider } from './store';
 
 import Recorder from './screens/Recorder';
 import RecordsList from './screens/RecordsList';
-import withProvider from './store';
+import { RECORDING, AUDIO } from './screens/constants';
 
 const screens = new Map();
 screens.set(RECORDING, Recorder);
@@ -27,7 +27,6 @@ const App = () => {
             },
           },
         ],
-        options: {},
       },
     },
   });
