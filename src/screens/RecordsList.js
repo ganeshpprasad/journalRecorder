@@ -1,9 +1,9 @@
-import React, {Component, useState} from 'react';
-import {StyleSheet, Text, FlatList, TouchableHighlight} from 'react-native';
-import {connect} from 'react-redux';
+import React, { Component, useState } from 'react';
+import { StyleSheet, Text, FlatList, TouchableHighlight } from 'react-native';
+import { connect } from 'react-redux';
 import Sound from 'react-native-sound';
 // import Speech from '@google-cloud/speech';
-import {speechToText} from '../services/speechToTextAPI';
+import { speechToText } from '../services/speechToTextAPI';
 
 const Item = props => {
   const [transcript, set] = useState('');
@@ -22,7 +22,7 @@ const Item = props => {
   };
 
   const getTranscripts = () => {
-    const {location} = props.item;
+    const { location } = props.item;
     const response = speechToText(location);
     response
       .then(data => {
@@ -46,13 +46,17 @@ const Item = props => {
 
 export class RecordsList extends Component {
   render() {
-    return (
-      <FlatList
-        style={styles.listCon}
-        data={this.props.audioFiles}
-        renderItem={({item}) => <Item item={item} />}
-      />
-    );
+    const elementToRender =
+      this.props.audioFiles.length > 0 ? (
+        <FlatList
+          style={styles.listCon}
+          data={this.props.audioFiles}
+          renderItem={({ item }) => <Item item={item} />}
+        />
+      ) : (
+        <Text>No items here</Text>
+      );
+    return elementToRender;
   }
 }
 
@@ -75,4 +79,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {};
 
 // eslint-disable-next-line prettier/prettier
-export default connect(mapStateToProps, mapDispatchToProps)(RecordsList);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(RecordsList);
