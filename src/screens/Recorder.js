@@ -9,6 +9,7 @@ import {
 import { connect } from 'react-redux';
 import { Navigation } from 'react-native-navigation';
 import { AudioRecorder, AudioUtils } from 'react-native-audio';
+import * as Animatable from 'react-native-animatable';
 
 import { AUDIO, SAVE } from './constants';
 import { RecordsList } from './RecordsList';
@@ -75,44 +76,6 @@ export class Buttons extends Component {
                 }
             };
         });
-    }
-
-    getButton(title, callback) {
-        return (
-            <TouchableHighlight onPress={callback} style={styles.playerButton}>
-                <Text style={styles.buttonText}>{title}</Text>
-            </TouchableHighlight>
-        );
-    }
-
-    // Render different buttons based on recordingState
-    renderButton(recordingState = this.state.recordingState) {
-        if (recordingState == IDLE) {
-            // render record
-            return (
-                <>
-                    {this.getButton('RECORD', () => this.record())}
-                    {/* {this.getButton('Playrecord', () => this.openRecordList())} */}
-                </>
-            );
-        } else if (recordingState == RECORD) {
-            // render Stop button and pause
-            return (
-                <>
-                    <View style={styles.timerView}>
-                        <Text style={styles.timer}>
-                            {this.state.currentTime}
-                        </Text>
-                    </View>
-                    {this.getButton('stop', () => this.stop())}
-                    {this.getButton('pause', () => this.pause())}
-                </>
-            );
-            // this.getButton('pause', () => this.pause()
-        } else {
-            // render Resume
-            return this.getButton('resume', () => this.resume());
-        }
     }
 
     async pause() {
@@ -245,12 +208,79 @@ export class Buttons extends Component {
         );
     }
 
+    getRecordingTimer = () => {
+        const handleButtonRef = ref => (this.button = ref);
+
+        const bounce = () =>
+            this.button
+                .pulse(300)
+                .then(endState =>
+                    console.log(
+                        endState.finished
+                            ? 'bounce finished'
+                            : 'bounce cancelled',
+                    ),
+                );
+        return (
+            <Animatable.View
+                animation={'pulse'}
+                iterationCount={'infinite'}
+                easing={'ease-in-sine'}>
+                <View style={styles.timerView}>
+                    <Text style={styles.timer}>{this.state.currentTime}</Text>
+                </View>
+            </Animatable.View>
+        );
+    };
+
+    getButton(title, callback) {
+        return (
+            <TouchableHighlight
+                activeOpacity={1}
+                underlayColor="#ffffff"
+                onPress={callback}
+                style={styles.playerButton}>
+                <Text style={styles.buttonText}>{title}</Text>
+            </TouchableHighlight>
+        );
+    }
+
+    getTitle = state => {
+        let title = null;
+        if (state === IDLE) {
+            title = 'Record your next journal';
+        } else {
+            title = 'Recording...';
+        }
+        return (
+            <View style={styles.titleCon}>
+                <Text style={styles.title}>{title}</Text>
+            </View>
+        );
+    };
+
     render() {
         // console.log('t', this.state);
+        const { recordingState } = this.state;
         return (
             <>
-                <View style={styles.mainCon}>{this.renderButton()}</View>
-                <RecordsList audioFiles={this.props.audioFiles} />
+                <View style={styles.mainCon}>
+                    {this.getTitle(recordingState)}
+                    {recordingState == IDLE &&
+                        this.getButton('RECORD', () => this.record())}
+                    {recordingState == RECORD && (
+                        <>
+                            {this.getRecordingTimer()}
+                            {this.getButton('stop', () => this.stop())}
+                            {this.getButton('pause', () => this.pause())}
+                        </>
+                    )}
+                    {recordingState === PAUSED &&
+                        this.getButton('resume', () => this.resume())}
+                </View>
+                {recordingState == IDLE && (
+                    <RecordsList audioFiles={this.props.audioFiles} />
+                )}
             </>
         );
     }
@@ -260,12 +290,20 @@ const styles = StyleSheet.create({
     mainCon: {
         marginTop: 10,
     },
+    titleCon: {
+        flex: 1,
+        alignItems: 'center',
+        margin: 30,
+    },
+    title: {
+        fontSize: 24,
+    },
     playerButton: {
         margin: 50,
         flex: 1,
         padding: 30,
-        borderColor: '#919',
-        borderWidth: 2,
+        borderColor: '#E50E64',
+        borderWidth: 4,
         alignItems: 'center',
         justifyContent: 'space-around',
     },
@@ -276,13 +314,18 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
     timerView: {
-        flex: 1,
+        // flex: 1,
         alignItems: 'center',
+        alignSelf: 'center',
         justifyContent: 'space-around',
         borderWidth: 5,
-        borderColor: '#333',
-        borderRadius: 50,
-        padding: 30,
+        borderColor: '#990943',
+        borderRadius: 120,
+        padding: 100,
+        margin: 30,
+        marginBottom: 10,
+        width: 240,
+        height: 240,
     },
 });
 

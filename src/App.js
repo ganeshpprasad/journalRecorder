@@ -26,6 +26,11 @@ const App = () => {
                     {
                         component: {
                             name: RECORDING,
+                            options: {
+                                topBar: {
+                                    height: 0,
+                                },
+                            },
                         },
                     },
                 ],
