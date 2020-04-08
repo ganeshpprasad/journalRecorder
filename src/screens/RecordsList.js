@@ -1,5 +1,11 @@
 import React, { Component, useState } from 'react';
-import { StyleSheet, Text, FlatList, TouchableHighlight } from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    FlatList,
+    TouchableHighlight,
+    View,
+} from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import { connect } from 'react-redux';
 import { AUDIOITEM } from './constants';
@@ -38,7 +44,11 @@ export class RecordsList extends Component {
                     )}
                 />
             ) : (
-                <Text>No items here</Text>
+                <View style={styles.emptyList}>
+                    <Text style={styles.emptyText}>
+                        Record your first journal
+                    </Text>
+                </View>
             );
         return elementToRender;
     }
@@ -53,6 +63,17 @@ const styles = StyleSheet.create({
         fontSize: 15,
         borderBottomColor: '#eee',
         borderBottomWidth: 2,
+    },
+    emptyList: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        padding: 100,
+        paddingRight: 50,
+        paddingLeft: 50,
+    },
+    emptyText: {
+        fontSize: 18,
     },
 });
 
