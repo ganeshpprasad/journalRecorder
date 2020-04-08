@@ -56,13 +56,4 @@ const styles = StyleSheet.create({
     },
 });
 
-const mapStateToProps = state => ({
-    audioFiles: state.audioFileName,
-});
-
-const mapDispatchToProps = {};
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps,
-)(RecordsList);
+export default RecordsList;

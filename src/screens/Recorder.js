@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { AudioRecorder, AudioUtils } from 'react-native-audio';
 import {
     StyleSheet,
     Text,
@@ -7,9 +6,12 @@ import {
     TouchableHighlight,
     Platform,
 } from 'react-native';
-
+import { connect } from 'react-redux';
 import { Navigation } from 'react-native-navigation';
+import { AudioRecorder, AudioUtils } from 'react-native-audio';
+
 import { AUDIO, SAVE } from './constants';
+import { RecordsList } from './RecordsList';
 
 // const PLAYING = 'play';
 const IDLE = 'idle';
@@ -90,7 +92,7 @@ export class Buttons extends Component {
             return (
                 <>
                     {this.getButton('RECORD', () => this.record())}
-                    {this.getButton('Playrecord', () => this.openRecordList())}
+                    {/* {this.getButton('Playrecord', () => this.openRecordList())} */}
                 </>
             );
         } else if (recordingState == RECORD) {
@@ -245,7 +247,12 @@ export class Buttons extends Component {
 
     render() {
         // console.log('t', this.state);
-        return <View style={styles.mainCon}>{this.renderButton()}</View>;
+        return (
+            <>
+                <View style={styles.mainCon}>{this.renderButton()}</View>
+                <RecordsList audioFiles={this.props.audioFiles} />
+            </>
+        );
     }
 }
 
@@ -279,5 +286,12 @@ const styles = StyleSheet.create({
     },
 });
 
+const mapStateToProps = state => ({
+    audioFiles: state.audioFileName,
+});
+
 // eslint-disable-next-line prettier/prettier
-export default Buttons;
+export default connect(
+    mapStateToProps,
+    null,
+)(Buttons);

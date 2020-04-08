@@ -10,7 +10,7 @@ import { RECORDING, AUDIO, SAVE, AUDIOITEM } from './screens/constants';
 
 const screens = new Map();
 screens.set(RECORDING, Recorder);
-screens.set(AUDIO, RecordsList);
+// screens.set(AUDIO, RecordsList);
 screens.set(SAVE, Save);
 screens.set(AUDIOITEM, AudioItem);
 
