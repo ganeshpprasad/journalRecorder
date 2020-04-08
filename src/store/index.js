@@ -9,11 +9,11 @@ import audioListReducer from './reducers';
 const store = createStore(audioListReducer);
 
 export const withProvider = Comp => props => (
-  <Provider store={store}>
-    <ErrorBoundry>
-      <Comp {...props} />
-    </ErrorBoundry>
-  </Provider>
+    <Provider store={store}>
+        <ErrorBoundry>
+            <Comp {...props} />
+        </ErrorBoundry>
+    </Provider>
 );
 
 export default withProvider;

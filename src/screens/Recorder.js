@@ -20,7 +20,6 @@ const AUDIO_BASE = AudioUtils.DocumentDirectoryPath;
 export class Buttons extends Component {
     constructor(props) {
         super(props);
-        console.log('props', props);
     }
 
     state = {
@@ -32,13 +31,7 @@ export class Buttons extends Component {
         recordTime: null,
     };
 
-    componentDidMount() {
-        console.log('recorder mount');
-    }
-
     prepareRecordingPath(audioPath) {
-        console.log('called prepare');
-
         // TODO: Move this to helper
         AudioRecorder.prepareRecordingAtPath(audioPath, {
             SampleRate: 44100,
@@ -162,8 +155,6 @@ export class Buttons extends Component {
             const filePath = await AudioRecorder.stopRecording();
 
             if (Platform.OS === 'android') {
-                console.log('filePath at stops', filePath);
-
                 this.finishRecording(true, filePath);
             }
             return filePath;
@@ -173,8 +164,6 @@ export class Buttons extends Component {
     }
 
     async openRecordList() {
-        console.log('this.props.navigationId', this.props.componentId);
-
         Navigation.push(this.props.componentId, {
             component: {
                 name: AUDIO,
@@ -201,6 +190,8 @@ export class Buttons extends Component {
         const time_file = new Date()
             .toLocaleTimeString()
             .split(':')
+            .join('_')
+            .split(' ')
             .join('_');
 
         // check for duplicates and all
@@ -226,10 +217,6 @@ export class Buttons extends Component {
     }
 
     finishRecording(didSucceed, filePath, fileSize) {
-        console.log('file path at finish', this.state.fileLocation, filePath);
-
-        // TODO Here the page will be navigated to save page.
-
         if (!didSucceed) {
             // TODO Handle this
             return;
@@ -239,12 +226,12 @@ export class Buttons extends Component {
         Navigation.push(this.props.componentId, {
             component: {
                 name: SAVE,
-            },
-            passProps: {
-                fileLocation: this.state.fileLocation,
-                time: this.state.recordTime,
-                fileSize,
-                length: this.state.currentTime,
+                passProps: {
+                    fileLocation: this.state.fileLocation,
+                    time: this.state.recordTime,
+                    fileSize,
+                    length: this.state.currentTime,
+                },
             },
         });
 

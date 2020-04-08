@@ -9,9 +9,9 @@ const Item = props => {
         Navigation.push(props.componentId, {
             component: {
                 name: AUDIOITEM,
-            },
-            passProps: {
-                item: props.item,
+                passProps: {
+                    item: props.item,
+                },
             },
         });
     };
