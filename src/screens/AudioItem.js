@@ -1,5 +1,12 @@
 import React, { Component } from 'react';
-import { Button, Text, View, Slider } from 'react-native';
+import {
+    Button,
+    Text,
+    View,
+    Slider,
+    StyleSheet,
+    TouchableOpacity,
+} from 'react-native';
 import Sound from 'react-native-sound';
 
 import { getAudioTimeString } from '../helpers/soundRecorder';
@@ -119,23 +126,28 @@ class AudioItem extends Component {
 
     render() {
         const { isPlaying, currentTime, duration } = this.state;
+        const { name } = this.props.item;
 
         return (
-            <View>
-                <Text>{'name'}</Text>
-                <Button
-                    title={
-                        isPlaying === playerStates.PLAYING
+            <View style={styles.playScreen}>
+                <Text style={styles.recordName}>{name}</Text>
+                <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={() => this.playRecording()}>
+                    <Text style={styles.playButtonText}>
+                        {isPlaying === playerStates.PLAYING
                             ? 'pause'
                             : isPlaying === playerStates.PAUSED
                             ? 'Resume'
-                            : 'play'
-                    }
-                    onPress={() => this.playRecording()}
-                />
-                <View>
-                    <Text>{getAudioTimeString(currentTime)}</Text>
+                            : 'play'}
+                    </Text>
+                </TouchableOpacity>
+                <View style={styles.controlCon}>
+                    <Text style={styles.currentTime}>
+                        {getAudioTimeString(currentTime)}
+                    </Text>
                     <Slider
+                        style={styles.control}
                         onTouchStart={this.onSliderEditStart}
                         onTouchEnd={this.onSliderEditEnd}
                         onValueChange={this.onSliderValueChange}
@@ -145,12 +157,57 @@ class AudioItem extends Component {
                         minimumTrackTintColor={'blue'}
                         thumbTintColor={'blue'}
                     />
-                    <Text>{getAudioTimeString(duration)}</Text>
+                    <Text style={styles.totalTime}>
+                        {getAudioTimeString(duration)}
+                    </Text>
                 </View>
-                <Text>Transcript wil be here</Text>
+                <Text style={styles.transcript}>Transcript wil be here</Text>
             </View>
         );
     }
 }
+
+const styles = StyleSheet.create({
+    playScreen: {
+        margin: 10,
+    },
+    recordName: {
+        fontSize: 18,
+        margin: 20,
+        textAlign: 'center',
+    },
+    playButton: {
+        margin: 30,
+        borderWidth: 2,
+        borderColor: '#E50E64',
+        height: 150,
+        width: 150,
+        borderRadius: 150,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
+    },
+    playButtonText: {
+        fontSize: 21,
+    },
+    controlCon: {
+        flexDirection: 'row',
+        margin: 30,
+    },
+    control: {
+        flexGrow: 1,
+    },
+    currentTime: {
+        padding: 6,
+    },
+    totalTime: {
+        padding: 6,
+    },
+    transcript: {
+        textAlign: 'center',
+        color: '#aaa',
+        margin: 10,
+    },
+});
 
 export default AudioItem;
