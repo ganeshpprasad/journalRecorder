@@ -279,7 +279,10 @@ export class Buttons extends Component {
                         this.getButton('resume', () => this.resume())}
                 </View>
                 {recordingState == IDLE && (
-                    <RecordsList audioFiles={this.props.audioFiles} />
+                    <RecordsList
+                        componentId={this.props.componentId}
+                        audioFiles={this.props.audioFiles}
+                    />
                 )}
             </>
         );

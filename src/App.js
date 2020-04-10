@@ -6,7 +6,7 @@ import Recorder from './screens/Recorder';
 import RecordsList from './screens/RecordsList';
 import Save from './screens/Save';
 import AudioItem from './screens/AudioItem';
-import { RECORDING, SAVE, AUDIOITEM } from './screens/constants';
+import { RECORDING, SAVE, AUDIOITEM, AUDIO } from './screens/constants';
 
 const screens = new Map();
 screens.set(RECORDING, Recorder);
