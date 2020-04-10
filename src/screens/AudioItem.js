@@ -21,6 +21,8 @@ class AudioItem extends Component {
     };
 
     componentDidMount() {
+        console.log('did mount');
+
         this.sound = new Sound(this.props.item.location, '', () => {});
     }
 

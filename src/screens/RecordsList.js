@@ -7,23 +7,30 @@ import {
     View,
 } from 'react-native';
 import { Navigation } from 'react-native-navigation';
-import { connect } from 'react-redux';
 import { AUDIOITEM } from './constants';
 
 const Item = props => {
-    const openAudioItem = () => {
-        Navigation.push(props.componentId, {
-            component: {
-                name: AUDIOITEM,
-                passProps: {
-                    item: props.item,
+    const openAudioItem = async () => {
+        try {
+            await Navigation.push(props.componentId, {
+                component: {
+                    name: AUDIOITEM,
+                    passProps: {
+                        item: props.item,
+                    },
                 },
-            },
-        });
+            });
+        } catch (error) {
+            console.log('error opening audioItem details page ==>>', error);
+        }
     };
 
     return (
-        <TouchableHighlight onPress={() => openAudioItem()}>
+        <TouchableHighlight
+            activeOpacity={0.2}
+            underlayColor={'#fff'}
+            style={styles.listItemCon}
+            onPress={() => openAudioItem()}>
             <Text style={styles.item}>{props.item.name}</Text>
         </TouchableHighlight>
     );
@@ -57,6 +64,15 @@ export class RecordsList extends Component {
 const styles = StyleSheet.create({
     listCon: {
         margin: 10,
+    },
+    listItemCon: {
+        padding: 10,
+        backgroundColor: '#eee',
+        borderBottomColor: '#E50E64',
+        borderBottomWidth: 2,
+        marginBottom: 10,
+        borderRadius: 3,
+        marginRight: 10,
     },
     item: {
         padding: 10,
